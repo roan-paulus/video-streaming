@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% block title %}Watch Videos!{% endblock %}
+{% endblock %}
+
+{% block content %}
+<h1>{{ video_name }}</h1>
+<video controls width="1400">
+  <source
+      src="{{ filepath }}"
+    type="video/{{ codec }}"
+  />
+  Unsupported video codec! Download 
+  <a href="{{ filepath }}">{{ filepath }}</a>
+</video>
+{% endblock %}
