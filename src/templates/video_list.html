@@ -102,8 +102,8 @@
 
   .tree .children { display: none; }
   .tree .expanded > .children { display: block; }
-  .tree .file a { text-decoration: none; color: inherit; }
-  .tree .file a:hover { text-shadow: 0 0 8px #f4a261; }
+  .tree .file a, .tree .directory > .label { text-decoration: none; color: inherit; }
+  .tree .file a:hover, .tree .directory:hover > .label { text-shadow: 0 0 8px #f4a261; }
 </style>
 
 <script>
@@ -122,8 +122,13 @@
   document.addEventListener('DOMContentLoaded', function() {
     const expandedDirs = getExpandedDirs();
     expandedDirs.forEach(dir => {
-      const el = document.querySelector('.directory[data-path="' + dir + '"]');
-      if (el) el.classList.add('expanded');
+      let path = '';
+      dir.split('/').forEach(part => {
+        path += part;
+        const el = document.querySelector('.directory[data-path="' + path + '"]');
+        if (el) el.classList.add('expanded');
+        path += '/';
+      });
     });
   });
 </script>
@@ -141,7 +146,7 @@
     </li>
   {% else %}
     <li class="file">
-      <span class="label"><div class="page"></div><a href="{{ url_for('video', filepath=node.path) }}?expanded={{ parent_path[:-1] }}" onclick="event.stopPropagation()">{{ node.name }}</a></span>
+      <span class="label"><div class="page"></div><a href="{{ url_for('video', filepath=node.path) }}?expanded={{ parent_path[:-1]|urlencode }}" onclick="event.stopPropagation()">{{ node.name }}</a></span>
     </li>
   {% endif %}
 {%- endmacro -%}
