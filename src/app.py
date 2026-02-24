@@ -11,25 +11,15 @@ def root():
 
 @app.route("/video-list")
 def video_list():
-    BASE_PATH = 'src/static/'
-    paths = [
-        os.path.join(dirpath, f).replace(BASE_PATH, "")
-        for (dirpath, dirnames, filenames) in os.walk(BASE_PATH)
-        for f in filenames
-    ]
-    return render_template('video_list.html', paths=paths)
+    BASE_PATH = 'src/static/videos'
+    dirs = [url_for('video', filepath=f) for f in os.listdir(BASE_PATH)]
+    return render_template('video_list.html', paths=dirs)
 
 @app.route("/videos/<filepath>")
 def video(filepath=None):
+    print(filepath)
     filepath = os.path.normpath(filepath)
     name, ext = os.path.splitext(filepath)
-
-    # if len(basename) == 2:
-    #     file_name = p[0]
-    #     extension = p[1]
-    # else:
-    #     raise Exception(f"'{p}' has no extention")
     static_path = url_for('static', filename=f'videos/{filepath}')
     codec = ext[1:]
     return render_template('video_player.html', filepath=static_path, codec=codec, ext=ext)
-
