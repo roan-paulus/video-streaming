@@ -5,9 +5,151 @@
 {% endblock %}
 
 {% block content %}
-  <ul>
-  {% for path in paths %}
-    <li><a href="{{ path }}">{{ path }}</a></li>
-  {% endfor %}
-  </ul>
+<a href="{{ url_for('root') }}">← Back to root</a>
+
+<style>
+  body {
+    background: #1a1a2e;
+    color: #e8d5b7;
+  }
+
+  a { color: #f4a261; text-decoration: none; }
+  a:hover { color: #e76f51; }
+
+  .tree { padding-left: 0; }
+  .tree ul { list-style: none; padding-left: 20px; margin: 5px 0; }
+  .tree li { margin: 8px 0; }
+  .tree .directory, .tree .file { cursor: pointer; user-select: none; }
+  .tree .directory > .label, .tree .file > .label { display: flex; align-items: center; gap: 12px; }
+  .tree .directory > .children { padding-left: 20px; margin-top: 5px; }
+
+  .tome {
+    width: 24px;
+    height: 28px;
+    position: relative;
+    image-rendering: pixelated;
+    animation: tome-bob 2s ease-in-out infinite;
+  }
+
+  .tome::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 24px;
+    background: #6b2d5c;
+    left: 2px;
+    top: 2px;
+    box-shadow:
+      -2px 0 0 #3d1a35,
+      2px 0 0 #3d1a35,
+      0 -2px 0 #3d1a35,
+      0 2px 0 #3d1a35,
+      inset 3px 0 0 #8b3d7c,
+      inset -3px 0 0 #4a1a3a;
+  }
+
+  .tome::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 20px;
+    background: #d4af37;
+    left: 0;
+    top: 4px;
+    box-shadow:
+      2px 0 0 #d4af37,
+      4px 0 0 #8b6914;
+  }
+
+  @keyframes tome-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  .page {
+    width: 20px;
+    height: 24px;
+    background: #f5e6c8;
+    position: relative;
+    image-rendering: pixelated;
+    box-shadow:
+      -1px 0 0 #c9b896,
+      1px 0 0 #fffef0,
+      2px 0 0 #d4c4a8,
+      -2px 0 0 #b8a87c;
+    animation: page-flip 1.5s ease-in-out infinite;
+  }
+
+  .page::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 2px;
+    background: #8b7355;
+    top: 5px;
+    left: 3px;
+    box-shadow:
+      0 4px 0 #8b7355,
+      0 8px 0 #8b7355,
+      0 12px 0 #8b7355;
+  }
+
+  @keyframes page-flip {
+    0%, 100% { transform: rotateY(0); }
+    25% { transform: rotateY(5deg); }
+    75% { transform: rotateY(-5deg); }
+  }
+
+  .tree .children { display: none; }
+  .tree .expanded > .children { display: block; }
+  .tree .file a { text-decoration: none; color: inherit; }
+  .tree .file a:hover { text-shadow: 0 0 8px #f4a261; }
+</style>
+
+<script>
+  function toggle(element) {
+    element.classList.toggle('expanded');
+    event.preventDefault();
+  }
+
+  function getExpandedDirs() {
+    const params = new URLSearchParams(window.location.search);
+    const expanded = params.get('expanded');
+    if (!expanded) return [];
+    return expanded.split(',').filter(d => d);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const expandedDirs = getExpandedDirs();
+    expandedDirs.forEach(dir => {
+      const el = document.querySelector('.directory[data-path="' + dir + '"]');
+      if (el) el.classList.add('expanded');
+    });
+  });
+</script>
+
+<div class="tree">
+{%- macro render_node(node, parent_path='') -%}
+  {% if node.type == 'directory' %}
+    <li class="directory" data-path="{{ parent_path }}{{ node.name }}" onclick="toggle(this); event.stopPropagation()">
+      <span class="label"><div class="tome"></div>{{ node.name }}</span>
+      <ul class="children">
+      {% for child in node.children %}
+        {{ render_node(child, parent_path + node.name + '/') }}
+      {% endfor %}
+      </ul>
+    </li>
+  {% else %}
+    <li class="file">
+      <span class="label"><div class="page"></div><a href="{{ url_for('video', filepath=node.path) }}?expanded={{ parent_path[:-1] }}" onclick="event.stopPropagation()">{{ node.name }}</a></span>
+    </li>
+  {% endif %}
+{%- endmacro -%}
+
+<ul>
+{% for node in tree %}
+  {{ render_node(node) }}
+{% endfor %}
+</ul>
+</div>
 {% endblock %}

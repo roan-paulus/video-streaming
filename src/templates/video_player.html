@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block content %}
+<a href="{{ url_for('video_list', expanded=request.args.get('expanded', '')) }}">← Back to video list</a>
 <h1>{{ video_name }}</h1>
 <video controls width="1400">
   <source
